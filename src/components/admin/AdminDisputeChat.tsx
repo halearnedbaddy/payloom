@@ -192,7 +192,7 @@ export function AdminDisputeChat({ dispute, isOpen, onClose, onStatusChange }: A
       // Create notification for dispute participants
       await supabase.from('notifications').insert([{
         user_id: dispute.opened_by_id,
-        type: 'DISPUTE_UPDATE' as const,
+        type: 'dispute_update',
         title: 'New message in your dispute',
         message: `Admin has responded to your dispute case.`,
         data: { disputeId: dispute.id },

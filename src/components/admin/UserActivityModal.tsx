@@ -73,8 +73,8 @@ export function UserActivityModal({ user, isOpen, onClose }: UserActivityModalPr
       ]);
 
       const allTx = [...(sellerTxRes.data || []), ...(buyerTxRes.data || [])];
-      const completed = allTx.filter(t => t.status === 'COMPLETED' || t.status === 'DELIVERED').length;
-      const disputed = allTx.filter(t => t.status === 'DISPUTED').length;
+      const completed = allTx.filter(t => t.status === 'completed' || t.status === 'delivered').length;
+      const disputed = allTx.filter(t => t.status === 'disputed').length;
       const totalAmount = allTx.reduce((sum, t) => sum + (t.amount || 0), 0);
 
       // Fetch wallet

@@ -4,7 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/hooks/useCurrency';
 import { LoaderIcon, ShieldIcon, CheckCircleIcon, ChevronRightIcon, XIcon } from '@/components/icons';
 import { Smartphone, Check } from 'lucide-react';
-import { SUPABASE_URL } from '@/lib/supabaseProject';
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from '@/lib/supabaseProject';
 
 interface PaymentLinkData {
   id: string;
@@ -59,11 +59,11 @@ export function BuyPage() {
     
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/intasend-api/payment-status`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ orderId: transactionId }),
-        });
+         const response = await fetch(`${SUPABASE_URL}/functions/v1/intasend-api/payment-status`, {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
+           body: JSON.stringify({ orderId: transactionId }),
+         });
         const result = await response.json();
         
         if (result.success) {
@@ -110,7 +110,7 @@ export function BuyPage() {
     setError(null);
     try {
       const response = await fetch(`${SUPABASE_URL}/functions/v1/links-api/${linkId}`, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
       });
       const result = await response.json();
       if (result.success && result.data) {
@@ -153,7 +153,7 @@ export function BuyPage() {
       // Step 1: Create order
       const orderResponse = await fetch(`${SUPABASE_URL}/functions/v1/links-api/${linkId}/purchase`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
         body: JSON.stringify({
           buyerName: buyerInfo.name,
           buyerPhone: buyerInfo.phone,
@@ -166,7 +166,9 @@ export function BuyPage() {
       const orderResult = await orderResponse.json();
 
       if (!orderResult.success || !orderResult.data?.transactionId) {
-        throw new Error(orderResult.error || 'Failed to create order');
+        const code = orderResult.code ? ` (${orderResult.code})` : '';
+        const http = !orderResponse.ok ? ` [HTTP ${orderResponse.status}]` : '';
+        throw new Error(`${orderResult.error || 'Failed to create order'}${code}${http}`);
       }
 
       const orderId = orderResult.data.transactionId;
@@ -175,7 +177,7 @@ export function BuyPage() {
       // Step 2: Initiate IntaSend STK Push
       const stkResponse = await fetch(`${SUPABASE_URL}/functions/v1/intasend-api/stk-push`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY },
         body: JSON.stringify({
           phoneNumber: buyerInfo.phone,
           email: buyerInfo.email,
