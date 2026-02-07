@@ -66,7 +66,7 @@ export function CreateDisputeModal({ isOpen, onClose, onSuccess, userRole }: Cre
       const query = supabase
         .from('transactions')
         .select('id, item_name, amount, created_at, seller_id, buyer_id')
-        .in('status', ['PAID', 'ACCEPTED', 'SHIPPED', 'DELIVERED', 'COMPLETED']);
+        .in('status', ['paid', 'accepted', 'shipped', 'delivered', 'completed']);
 
       if (userRole === 'buyer') {
         query.eq('buyer_id', user.id);
