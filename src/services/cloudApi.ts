@@ -259,7 +259,7 @@ class CloudApiService {
       const { data, error } = await supabase
         .from("stores")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("seller_id", user.id)
         .maybeSingle();
 
       if (error) return { success: false, error: error.message };
@@ -276,7 +276,7 @@ class CloudApiService {
 
       const { data: store, error } = await supabase
         .from("stores")
-        .insert({ user_id: user.id, name: data.name, slug: data.slug })
+        .insert({ seller_id: user.id, name: data.name, slug: data.slug })
         .select()
         .single();
 
@@ -295,7 +295,7 @@ class CloudApiService {
       const { error } = await supabase
         .from("stores")
         .update(updates)
-        .eq("user_id", user.id);
+        .eq("seller_id", user.id);
 
       if (error) return { success: false, error: error.message };
       return { success: true, data: true };
@@ -318,7 +318,7 @@ class CloudApiService {
       const { data: store } = await supabase
         .from("stores")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("seller_id", user.id)
         .maybeSingle();
 
       if (!store) return { success: true, data: [] };
@@ -345,7 +345,7 @@ class CloudApiService {
       const { data: store } = await supabase
         .from("stores")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("seller_id", user.id)
         .maybeSingle();
 
       if (!store) return { success: true, data: [] };
@@ -372,7 +372,7 @@ class CloudApiService {
       const { data: store } = await supabase
         .from("stores")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("seller_id", user.id)
         .maybeSingle();
 
       if (!store) return { success: false, error: "Store not found" };

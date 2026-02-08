@@ -107,7 +107,7 @@ export function StoreSettings({ store, onUpdate }: StoreSettingsProps) {
     const res = await api.updateStoreStatus('ACTIVE');
     
     if (res.success) {
-      onUpdate({ status: 'ACTIVE' });
+      onUpdate({ status: 'active' });
       toast({ title: 'Store activated!', description: 'Your store is now live' });
     } else {
       toast({ 
@@ -126,7 +126,7 @@ export function StoreSettings({ store, onUpdate }: StoreSettingsProps) {
     const res = await api.updateStoreStatus('INACTIVE');
     
     if (res.success) {
-      onUpdate({ status: 'INACTIVE' });
+      onUpdate({ status: 'inactive' });
       toast({ title: 'Store deactivated' });
     } else {
       toast({ title: 'Failed to deactivate store', description: res.error, variant: 'destructive' });
@@ -135,8 +135,9 @@ export function StoreSettings({ store, onUpdate }: StoreSettingsProps) {
     setIsActivating(false);
   };
 
-  const isActive = store.status === 'ACTIVE';
-  const isFrozen = store.status === 'FROZEN';
+  const status = (store.status || '').toString().toLowerCase();
+  const isActive = status === 'active';
+  const isFrozen = status === 'frozen';
 
   return (
     <div className="space-y-6">

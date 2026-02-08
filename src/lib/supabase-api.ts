@@ -113,7 +113,7 @@ export const supabaseApi = {
     const { data, error } = await supabase
       .from("stores")
       .select("*")
-      .eq("user_id", user.id)
+      .eq("seller_id", user.id)
       .maybeSingle();
 
     if (error) {
@@ -129,7 +129,7 @@ export const supabaseApi = {
 
     const { data, error } = await supabase
       .from("stores")
-      .insert({ user_id: user.id, name, slug })
+      .insert({ seller_id: user.id, name, slug })
       .select()
       .single();
 
@@ -147,7 +147,7 @@ export const supabaseApi = {
     const { error } = await supabase
       .from("stores")
       .update(updates)
-      .eq("user_id", user.id);
+      .eq("seller_id", user.id);
 
     return !error;
   },
@@ -160,7 +160,7 @@ export const supabaseApi = {
     const { data: store } = await supabase
       .from("stores")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("seller_id", user.id)
       .maybeSingle();
 
     if (!store) return [];
@@ -186,7 +186,7 @@ export const supabaseApi = {
     const { data: store } = await supabase
       .from("stores")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("seller_id", user.id)
       .maybeSingle();
 
     if (!store) return [];
