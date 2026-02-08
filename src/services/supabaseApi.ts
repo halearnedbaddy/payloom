@@ -342,9 +342,9 @@ export async function getSellerStats() {
     .eq("user_id", userId)
     .maybeSingle();
 
-  // Get seller profile from profiles table
+  // Get seller profile from seller_profiles table
   const { data: sellerProfile } = await supabase
-    .from("profiles")
+    .from("seller_profiles")
     .select("business_name, rating, total_reviews")
     .eq("user_id", userId)
     .maybeSingle();
@@ -482,10 +482,10 @@ export async function createStore(data: { name: string; slug: string }) {
   const { data: store, error } = await supabase
     .from("stores")
     .insert([{
-      user_id: session.user.id,
+      seller_id: session.user.id,
       name: data.name,
       slug: data.slug,
-      status: "INACTIVE" as StoreStatus,
+      status: "inactive",
       visibility: "PRIVATE",
     }])
     .select()
@@ -533,12 +533,12 @@ export async function updateStoreStatus(status: "INACTIVE" | "ACTIVE" | "FROZEN"
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return { success: false, error: "Not authenticated" };
 
-  const statusUpper = toUpperEnum<StoreStatus>(status);
+  const statusDb = String(status).trim().toLowerCase();
 
   const { data: store, error } = await supabase
     .from("stores")
-    .update({ status: statusUpper, updated_at: new Date().toISOString() })
-    .eq("user_id", session.user.id)
+    .update({ status: statusDb, updated_at: new Date().toISOString() })
+    .eq("seller_id", session.user.id)
     .select()
     .single();
 
@@ -952,7 +952,7 @@ export async function createProduct(data: {
   const { data: store } = await supabase
     .from("stores")
     .select("id")
-    .eq("user_id", session.user.id)
+    .eq("seller_id", session.user.id)
     .maybeSingle();
 
   if (!store) {
@@ -987,7 +987,7 @@ export async function listDraftProducts() {
   const { data: store } = await supabase
     .from("stores")
     .select("id")
-    .eq("user_id", session.user.id)
+    .eq("seller_id", session.user.id)
     .maybeSingle();
 
   if (!store) {
@@ -1015,7 +1015,7 @@ export async function listPublishedProducts() {
   const { data: store } = await supabase
     .from("stores")
     .select("id")
-    .eq("user_id", session.user.id)
+    .eq("seller_id", session.user.id)
     .maybeSingle();
 
   if (!store) {
