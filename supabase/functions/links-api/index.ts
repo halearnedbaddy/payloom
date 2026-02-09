@@ -80,7 +80,8 @@ Deno.serve(async (req: Request) => {
       const expiryDate = expiryHours
         ? new Date(Date.now() + expiryHours * 60 * 60 * 1000).toISOString()
         : null;
-      const frontendUrl = Deno.env.get("FRONTEND_URL") || "https://payloominstantsafrica.vercel.app";
+      const rawFrontendUrl = Deno.env.get("FRONTEND_URL") || "https://payloominstantsafrica.vercel.app";
+      const frontendUrl = rawFrontendUrl.replace(/\/+$/, ""); // strip trailing slashes
 
       // Store status as ACTIVE (uppercase for consistency with existing data)
       const { data: link, error } = await supabase
