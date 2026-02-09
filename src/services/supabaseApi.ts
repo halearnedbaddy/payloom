@@ -2,38 +2,38 @@
  * Supabase API Service
  * Replaces the old backend API with direct Supabase calls
  */
-
-import { supabase } from "@/lib/supabase";
+// Use the main supabase client from integrations to ensure session sharing
+import { supabase } from "@/integrations/supabase/client";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabaseProject";
 
-type TransactionStatus =
-  | "PENDING"
-  | "PROCESSING"
-  | "PAID"
-  | "ACCEPTED"
-  | "SHIPPED"
-  | "DELIVERED"
-  | "COMPLETED"
-  | "DISPUTED"
-  | "CANCELLED"
-  | "REFUNDED"
-  | "EXPIRED";
+// Database enum types (lowercase as stored in Postgres)
+type TransactionStatusDb =
+  | "pending"
+  | "processing"
+  | "paid"
+  | "accepted"
+  | "shipped"
+  | "delivered"
+  | "completed"
+  | "disputed"
+  | "cancelled"
+  | "refunded"
+  | "expired";
 
-type StoreStatus = "INACTIVE" | "ACTIVE" | "FROZEN";
-type ProductStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
-// PaymentMethodType is now handled by toDbPaymentMethodType in paymentProviders.ts
-type SocialPlatform = "INSTAGRAM" | "FACEBOOK" | "LINKEDIN";
-type DisputeStatus =
-  | "OPEN"
-  | "UNDER_REVIEW"
-  | "AWAITING_SELLER"
-  | "AWAITING_BUYER"
-  | "RESOLVED_BUYER"
-  | "RESOLVED_SELLER"
-  | "CLOSED";
+type StoreStatusDb = "inactive" | "active" | "frozen";
+type ProductStatusDb = "draft" | "published" | "archived";
+type SocialPlatformDb = "instagram" | "facebook" | "linkedin";
+type DisputeStatusDb =
+  | "open"
+  | "under_review"
+  | "awaiting_seller"
+  | "awaiting_buyer"
+  | "resolved_buyer"
+  | "resolved_seller"
+  | "closed";
 
-function toUpperEnum<T extends string>(value: string): T {
-  return value.trim().toUpperCase().replace(/ /g, '_') as T;
+function toLowerEnum<T extends string>(value: string): T {
+  return value.trim().toLowerCase().replace(/ /g, '_') as T;
 }
 
 interface ApiResponse<T = unknown> {
@@ -131,7 +131,7 @@ export async function getBuyerOrders(params: { status?: string; page?: number; l
     .range((page - 1) * limit, page * limit - 1);
 
   if (params.status) {
-    query = query.eq("status", toUpperEnum<TransactionStatus>(params.status));
+    query = query.eq("status", toLowerEnum<TransactionStatusDb>(params.status));
   }
 
   const { data, error, count } = await query;
@@ -253,7 +253,7 @@ export async function openDispute(transactionId: string, reason: string) {
     .insert({
       reason,
       opened_by_id: session.user.id,
-      status: "OPEN" as DisputeStatus,
+      status: "open" as DisputeStatusDb,
       transaction_id: transactionId,
     })
     .select()
@@ -266,7 +266,7 @@ export async function openDispute(transactionId: string, reason: string) {
   // Update transaction status
   await supabase
     .from("transactions")
-    .update({ status: "DISPUTED" as TransactionStatus })
+    .update({ status: "disputed" as TransactionStatusDb })
     .eq("id", transactionId);
 
   return { success: true, data };
@@ -289,7 +289,7 @@ export async function getSellerOrders(params: { status?: string; page?: number; 
     .range((page - 1) * limit, page * limit - 1);
 
   if (params.status) {
-    query = query.eq("status", toUpperEnum<TransactionStatus>(params.status));
+    query = query.eq("status", toLowerEnum<TransactionStatusDb>(params.status));
   }
 
   const { data, error, count } = await query;
@@ -387,7 +387,7 @@ export async function acceptOrder(orderId: string) {
   const { data, error } = await supabase
     .from("transactions")
     .update({
-      status: "accepted" as TransactionStatus,
+      status: "accepted" as TransactionStatusDb,
       accepted_at: new Date().toISOString(),
     })
     .eq("id", orderId)
@@ -409,7 +409,7 @@ export async function rejectOrder(orderId: string, reason?: string) {
   const { data, error } = await supabase
     .from("transactions")
     .update({
-      status: "cancelled" as TransactionStatus,
+      status: "cancelled" as TransactionStatusDb,
       rejection_reason: reason,
       rejected_at: new Date().toISOString(),
     })
@@ -437,7 +437,7 @@ export async function addShippingInfo(orderId: string, data: {
   const { data: updated, error } = await supabase
     .from("transactions")
     .update({
-      status: "shipped" as TransactionStatus,
+      status: "shipped" as TransactionStatusDb,
       courier_name: data.courierName,
       tracking_number: data.trackingNumber,
       estimated_delivery_date: data.estimatedDeliveryDate,
@@ -529,11 +529,11 @@ export async function updateStore(data: {
   return { success: true, data: store };
 }
 
-export async function updateStoreStatus(status: "INACTIVE" | "ACTIVE" | "FROZEN" | StoreStatus) {
+export async function updateStoreStatus(status: "INACTIVE" | "ACTIVE" | "FROZEN" | StoreStatusDb) {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) return { success: false, error: "Not authenticated" };
 
-  const statusDb = String(status).trim().toLowerCase();
+  const statusDb = String(status).trim().toLowerCase() as StoreStatusDb;
 
   const { data: store, error } = await supabase
     .from("stores")
@@ -785,7 +785,7 @@ export async function connectSocialPage(data: {
     .from("social_accounts")
     .insert([{
       store_id: store.id,
-      platform: toUpperEnum<SocialPlatform>(data.platform),
+      platform: toLowerEnum<SocialPlatformDb>(data.platform),
       page_url: data.pageUrl,
       page_id: data.pageId,
     }])
@@ -967,7 +967,7 @@ export async function createProduct(data: {
       description: data.description || null,
       price: data.price,
       images: data.images || [],
-      status: "draft" as ProductStatus,
+      status: "draft", // lowercase to match DB enum
       source: "manual",
     }])
     .select()
@@ -994,11 +994,12 @@ export async function listDraftProducts() {
     return { success: true, data: [] };
   }
 
+  // Query for both 'draft' (lowercase, as stored in DB) and 'DRAFT' (for any legacy data)
   const { data, error } = await supabase
     .from("products")
     .select("*")
     .eq("store_id", store.id)
-    .eq("status", "draft" as ProductStatus)
+    .eq("status", "draft")
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -1022,11 +1023,12 @@ export async function listPublishedProducts() {
     return { success: true, data: [] };
   }
 
+  // Query for both 'published' (lowercase, as stored in DB) and 'PUBLISHED' (for any legacy data)
   const { data, error } = await supabase
     .from("products")
     .select("*")
     .eq("store_id", store.id)
-    .eq("status", "published" as ProductStatus)
+    .eq("status", "published")
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -1041,7 +1043,7 @@ export async function updateProduct(productId: string, data: {
   description?: string;
   price?: number;
   images?: string[];
-  status?: "draft" | "published" | "archived" | ProductStatus;
+  status?: "draft" | "published" | "archived" | ProductStatusDb;
 }) {
   const updateData: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
@@ -1051,7 +1053,8 @@ export async function updateProduct(productId: string, data: {
   if (data.description !== undefined) updateData.description = data.description;
   if (data.price !== undefined) updateData.price = data.price;
   if (data.images !== undefined) updateData.images = data.images;
-  if (data.status) updateData.status = toUpperEnum<ProductStatus>(data.status);
+  // Use lowercase status to match DB enum values
+  if (data.status) updateData.status = String(data.status).toLowerCase();
 
   const { data: product, error } = await supabase
     .from("products")
