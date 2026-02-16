@@ -102,7 +102,7 @@ export function AdminStores() {
     try {
       const { error } = await supabase
         .from('stores')
-        .update({ status: 'FROZEN' })
+        .update({ status: 'frozen' })
         .eq('id', storeId);
       
       if (!error) {
@@ -120,7 +120,7 @@ export function AdminStores() {
     try {
       const { error } = await supabase
         .from('stores')
-        .update({ status: 'ACTIVE' })
+        .update({ status: 'active' })
         .eq('id', storeId);
       
       if (!error) {

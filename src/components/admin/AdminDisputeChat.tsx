@@ -200,7 +200,7 @@ export function AdminDisputeChat({ dispute, isOpen, onClose, onStatusChange }: A
       await supabase.from('notifications').insert(
         uniqueIds.map(uid => ({
           user_id: uid,
-          type: 'DISPUTE_UPDATE' as const,
+          type: 'dispute_update' as const,
           title: 'New message in your dispute',
           message: `Admin has responded to your dispute case #${dispute.id.slice(0, 8)}.`,
           data: { disputeId: dispute.id },
