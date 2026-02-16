@@ -155,7 +155,7 @@ export function HomePage() {
             Halearnedu Web sources and supplies quality products. Sellers simply create a store, list them, and earn commissions on every sale.
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '3rem', alignItems: 'center' }}>
+        <div className="pl-products-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '3rem', alignItems: 'center' }}>
           <div className="fade-up" ref={addFadeRef}>
             <img src={productsImg} alt="Product showcase" style={{ width: '100%', borderRadius: 16, boxShadow: '0 12px 40px rgba(10,12,24,0.1)' }} />
           </div>

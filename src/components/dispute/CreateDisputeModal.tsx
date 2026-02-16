@@ -42,7 +42,7 @@ export function CreateDisputeModal({ onClose, onCreated }: CreateDisputeModalPro
       .from('transactions')
       .select('id, item_name, amount, currency, seller_id, status, created_at')
       .eq('buyer_id', user.id)
-      .in('status', ['PAID', 'ACCEPTED', 'SHIPPED', 'DELIVERED'])
+      .in('status', ['paid', 'accepted', 'shipped', 'delivered'])
       .order('created_at', { ascending: false })
       .limit(20);
 
