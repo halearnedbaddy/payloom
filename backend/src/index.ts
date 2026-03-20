@@ -20,6 +20,9 @@ import socialRoutes from './routes/socialRoutes';
 import productRoutes from './routes/productRoutes';
 import storefrontRoutes from './routes/storefrontRoutes';
 import linkRoutes from './routes/linkRoutes';
+import inventoryRoutes from './routes/inventoryRoutes';
+import posRoutes from './routes/posRoutes';
+import receiptRoutes from './routes/receiptRoutes';
 import { globalRateLimiter, sanitizeInput, detectSuspiciousActivity } from './middleware/security';
 import { startSyncScheduler } from './services/syncScheduler';
 import { startEscrowScheduler } from './services/escrowService';
@@ -122,6 +125,9 @@ app.use('/api/v1/social', socialRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/storefront', storefrontRoutes);
 app.use('/api/v1/links', linkRoutes);
+app.use('/api/v1/inventory', inventoryRoutes);
+app.use('/api/v1/pos', posRoutes);
+app.use('/api/v1/receipts', receiptRoutes);
 
 // 404 handler
 app.use((req, res) => {
